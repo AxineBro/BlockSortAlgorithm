@@ -3,26 +3,10 @@
 public class SortingBlocks
 {
     private static int blockSize;
+    private static int blockSizeCopy;
     private static int[] inputArray;
     private static int[] inputArrayCopy;
 
-    /*private static void sortArray() {
-        int gap = (inputArray.Length + blockSize -1) / blockSize;
-        int[] indexs = new int[blockSize];
-        while (gap > 0)
-        {
-            for (int i = 0; i < gap; i++) {
-                for (int j = 0; j < blockSize; j++) {
-                    if(j * blockSize < inputArray.Length)
-                        indexs[j] = j*gap + i;
-                    else
-                        indexs[j] = inputArray.Length-1;
-                }
-                blockSort(indexs);
-            }
-            gap--;
-        }
-    }*/
     private static void sortArray()
     {
         int gap = (inputArray.Length + blockSize - 1) / blockSize;
@@ -67,39 +51,42 @@ public class SortingBlocks
             inputArray[indexs[i]] = block[i];
         }
     }
-
-    /*private static void swapBlocks(int start1, int start2, int blockSize)
-    {
-        for (int i = 0; i < blockSize; i++)
-        {
-            if (start1 + i < inputArrayCopy.Length && start2 + i < inputArrayCopy.Length)
-            {
-                int temp = inputArrayCopy[start1 + i];
-                inputArrayCopy[start1 + i] = inputArrayCopy[start2 + i];
-                inputArrayCopy[start2 + i] = temp;
-            }
-        }
-    }
-
     private static void sortByBlocks()
     {
-        int numBlocks = (inputArrayCopy.Length  + blockSize - 1) / blockSize;
+        if (blockSizeCopy <= 1) return;
 
-        for (int i = 0; i < numBlocks; i++)
+        int half = blockSizeCopy / 2;
+        bool changed;
+        int passes = 0;
+
+        do
         {
-            for (int j = i + 1; j < numBlocks; j++)
-            {
-                int firstA = inputArrayCopy[i * blockSize];
-                int firstB = inputArrayCopy[j * blockSize];
+            changed = false;
 
-                if (firstA > firstB)
+            for (int i = 0; i < inputArrayCopy.Length; i += half)
+            {
+                int end = Math.Min(i + blockSizeCopy, inputArrayCopy.Length);
+                int len = end - i;
+
+                int[] block = new int[len];
+                Array.Copy(inputArrayCopy, i, block, 0, len);
+                Array.Sort(block);
+
+                for (int j = 0; j < len; j++)
                 {
-                    swapBlocks(i * blockSize, j * blockSize, blockSize);
+                    if (inputArrayCopy[i + j] != block[j])
+                    {
+                        inputArrayCopy[i + j] = block[j];
+                        changed = true;
+                    }
                 }
             }
-        }
-    }*/
 
+            passes++;
+            if (passes > inputArrayCopy.Length) break;
+
+        } while (changed);  
+    }
 
     private static int[] getArray(string msg)
     {
@@ -145,11 +132,42 @@ public class SortingBlocks
         return -1;
     }
 
+    private static int[] generateArray(int size)
+    {
+        Random rnd = new Random();
+        int[] arr = new int[size];
+
+        for (int i = 0; i < size; i++)
+        {
+            arr[i] = rnd.Next(0, 100);
+        }
+
+        return arr;
+    }
+
+
     public static void Main()
     {
-        inputArray = getArray("Введите массив");              //8 6 5 3 2 1 4 5 6 9 3
-        inputArrayCopy = (int[])inputArray.Clone();
-        blockSize = getNumber("Введите размер блока");        //3
+        inputArray = generateArray(getNumber("Введите размер массива"));
+        if (inputArray.Length % 2 == 0)
+        {
+            inputArrayCopy = (int[])inputArray.Clone();
+        }
+        else {
+            inputArrayCopy = new int[inputArray.Length - 1];
+            Array.Copy(inputArray, inputArrayCopy, inputArray.Length - 1);
+        }
+
+
+        blockSize = getNumber("Введите размер блока");
+        if (blockSize % 2 == 0)
+        {
+            blockSizeCopy = blockSize;
+        }
+        else
+        {
+            blockSizeCopy = blockSize - 1;
+        }
 
         Console.WriteLine("Сортировка методом сортировки внутри блоков:\n");
         Console.WriteLine("Описание метода:");
@@ -160,16 +178,20 @@ public class SortingBlocks
         sortArray();
         Console.WriteLine("После сортировки: " + string.Join(", ", inputArray));
         Console.WriteLine();
-        /*
-        Console.WriteLine("Сортировка методом перестановки блоков:\n");
+
+        Console.WriteLine("Сортировка методом деления блоков:\n");
         Console.WriteLine("Описание метода:");
-        Console.WriteLine("Массив делится на блоки одинаковой длины.\n"
-                        + "Блоки сравниваются между собой по первым элементам.\n"
-                        + "Если порядок нарушен, два блока меняются местами.\n"
-                        + "Так продолжается до тех пор, пока массив не будет упорядочен.\n");
+        Console.WriteLine("Массив обрабатывается блоками заданной длины.\n"
+                        + "Каждый блок делится на две половины.\n"
+                        + "Объединённый блок сортируется целиком.\n"
+                        + "Первая половина отсортированного блока остаётся на месте,\n"
+                        + "а вторая половина переносится вперёд, образуя начало следующего блока.\n"
+                        + "Процесс продолжается, пока не будет пройден весь массив.\n");
+
         Console.WriteLine("До сортировки: " + string.Join(", ", inputArrayCopy));
         sortByBlocks();
-        Console.WriteLine("После сортировки: " + string.Join(", ", inputArrayCopy));*/
+        Console.WriteLine("После сортировки: " + string.Join(", ", inputArrayCopy));
+
     }
 
 }
